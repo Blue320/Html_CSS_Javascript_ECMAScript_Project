@@ -7,8 +7,8 @@ export const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? "http://localh
 console.log('API_BASE_URL =' + API_BASE_URL );
  
 // 백틱(`)으로 감싸면 ${ } 안에 값을 끼워 넣을 수 있다(템플릿 리터럴).
-// 3부의 `${API_BASE_URL}/api/students` 를 매번 쓰던 것을 한 번만 만들어 둔다.
-export const STUDENTS_URL = `${API_BASE_URL}/api/students`;
+// 3부의 `${API_BASE_URL}/api/books` 를 매번 쓰던 것을 한 번만 만들어 둔다.
+export const BOOKS_URL = `${API_BASE_URL}/api/books`;
  
 // POST 와 PUT 에서 똑같이 쓰던 헤더. 3부에서는 함수마다 적어 두었다.
 export const JSON_HEADERS = {
