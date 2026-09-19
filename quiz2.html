@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수업 교재 완벽 반영 풀스택 80제 실전 모의고사</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    header {
+      background: var(--card);
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #0f172a;
+    }
+    .stats {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+    .stats span {
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .btn-shuffle {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-shuffle:hover { background: #1d4ed8; }
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .tab-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .card-header {
+      font-weight: 700;
+      font-size: 0.98rem;
+      margin-bottom: 14px;
+      color: #0f172a;
+      white-space: pre-wrap;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-weight: bold;
+    }
+    .tag-be { background: #eff6ff; color: #1d4ed8; }
+    .tag-fe { background: #fdf2f8; color: #db2777; }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .option-btn {
+      text-align: left;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 6px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+      transition: background 0.15s;
+    }
+    .option-btn:hover:not(:disabled) { background: #f1f5f9; }
+    .option-btn.correct {
+      background-color: #dcfce7 !important;
+      border-color: var(--success) !important;
+      color: #14532d;
+      font-weight: 600;
+    }
+    .option-btn.incorrect {
+      background-color: #fee2e2 !important;
+      border-color: var(--danger) !important;
+      color: #7f1d1d;
+    }
+    .explanation {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      background-color: #f8fafc;
+      border-left: 4px solid var(--primary);
+      font-size: 0.88rem;
+      color: #334155;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>수업 교재 기반 80제 실전 퀴즈 (BE 40 + FE 40)</h1>
+        <button class="btn-shuffle" onclick="initQuiz()">문제 & 보기 전체 재셔플</button>
+      </div>
+      <div class="header-top" style="margin-bottom:0;">
+        <div class="stats">
+          진행도: <span id="solved-count">0</span> / <span id="total-count">80</span> | 
+          정답: <span id="correct-count" style="color: var(--success)">0</span> | 
+          정답률: <span id="accuracy">0%</span>
+        </div>
+        <div class="filter-tabs">
+          <button class="tab-btn active" onclick="setFilter('ALL')">전체 (80)</button>
+          <button class="tab-btn" onclick="setFilter('BE')">백엔드 (40)</button>
+          <button class="tab-btn" onclick="setFilter('FE')">프론트엔드 (40)</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="quiz-list"></div>
+  </div>
+
+  <script>
+    const rawQuestions = [
+      // =========================================================================
+      // BACKEND (40문항) - Java OOP, Spring Core, Boot, Security, JPA, REST
+      // =========================================================================
+      {
+        cat: "BE",
+        question: "Java의 접근 제한자(Access Modifier)의 접근 허용 범위가 넓은 순서대로 올바르게 나열된 것은?",
+        options: [
+          "public > protected > default > private",
+          "public > default > protected > private",
+          "protected > public > default > private",
+          "public > protected > private > default"
+        ],
+        answer: 0,
+        explanation: "접근 범위는 모든 접근을 허용하는 public, 상속 관계 및 동일 패키지를 허용하는 protected, 동일 패키지만 허용하는 default, 동일 클래스 내부만 허용하는 private 순서입니다."
+      },
+      {
+        cat: "BE",
+        question: "Java 클래스 다이어그램에서 클래스 A의 멤버 변수로 클래스 B를 참조하고 있어(private B b;) Dependency(의존)보다 더 오랫동안 참조를 유지하는 관계는?",
+        options: [
+          "Association (연관관계)",
+          "Dependency (의존관계)",
+          "Generalization (일반화관계)",
+          "Realization (실체화관계)"
+        ],
+        answer: 0,
+        explanation: "필드로 객체 참조를 유지하는 것은 Association(연관관계)이며, 메서드 매개변수나 로컬 변수 수준에서 일시적으로 참조하는 것은 Dependency(의존관계)입니다."
+      },
+      {
+        cat: "BE",
+        question: "Java에서 Exception 클래스를 직접 상속받아 만든 사용자 정의 예외에 대한 설명으로 옳은 것은?",
+        options: [
+          "반드시 try-catch로 잡거나 throws로 선언해야 하는 Checked Exception이 된다.",
+          "RuntimeException처럼 컴파일 시점에 예외 처리를 강제하지 않는다.",
+          "Error 클래스를 상속받은 것과 동일하게 처리된다.",
+          "JVM 메모리 누수 오류만 전담하여 처리한다."
+        ],
+        answer: 0,
+        explanation: "RuntimeException이 아닌 Exception 클래스를 직접 상속받으면 컴파일러가 예외 처리를 강제하는 Checked Exception이 됩니다."
+      },
+      {
+        cat: "BE",
+        question: "Java 8 Stream API의 3단계 파이프라인 구조를 올바른 순서로 나열한 것은?",
+        options: [
+          "스트림 생성 → 중간 연산 (Intermediate) → 최종 연산 (Terminal)",
+          "중간 연산 → 최종 연산 → 스트림 생성",
+          "스트림 생성 → 최종 연산 → 중간 연산",
+          "최종 연산 → 스트림 생성 → 중간 연산"
+        ],
+        answer: 0,
+        explanation: "Stream API는 데이터 소스로부터 스트림을 생성한 뒤 여러 중간 연산을 연결하고, 최종 연산을 호출하는 순간 지연 연산(Lazy Evaluation)이 한꺼번에 수행됩니다."
+      },
+      {
+        cat: "BE",
+        question: "Java 8 Stream의 중간 연산과 최종 연산에 대한 설명 중 옳지 않은 것은?",
+        options: [
+          "중간 연산은 Stream을 반환하므로 메서드 체이닝이 가능하다.",
+          "최종 연산을 호출하기 전까지는 중간 연산이 실제로 실행되지 않는다(지연 평가).",
+          "한 번 소비된 스트림은 최종 연산 이후에도 재사용할 수 있다.",
+          "Java 16부터는 .collect(Collectors.toList()) 대신 .toList()로 불변 리스트를 바로 수집할 수 있다."
+        ],
+        answer: 2,
+        explanation: "스트림은 단 한 번만 소비될 수 있으며, 최종 연산이 수행된 스트림을 다시 사용하려고 하면 IllegalStateException이 발생합니다."
+      },
+      {
+        cat: "BE",
+        question: "Stream의 람다식 '.map(student -> StudentDTO.Response.fromEntity(student))'을 메서드 참조(Method Reference)로 가장 올바르게 축약한 것은?",
+        options: [
+          ".map(StudentDTO.Response::fromEntity)",
+          ".map(StudentDTO.Response.fromEntity::new)",
+          ".map(Student::fromEntity)",
+          ".map(fromEntity::StudentDTO.Response)"
+        ],
+        answer: 0,
+        explanation: "전달받은 인자를 그대로 정적 메서드에 넘기는 경우 '클래스명::메서드명' 형태의 메서드 참조로 축약할 수 있습니다."
+      },
+      {
+        cat: "BE",
+        question: "스프링 프레임워크와 일반 라이브러리의 본질적인 차이점을 결정하는 핵심 기준은?",
+        options: [
+          "실행 흐름에 대한 제어권(IoC)을 누가 갖는가",
+          "데이터베이스 연결 지원 여부",
+          "사용하는 프로그래밍 언어의 종류",
+          "오픈소스 라이선스의 유무"
+        ],
+        answer: 0,
+        explanation: "라이브러리는 개발자 코드가 라이브러리를 직접 호출하지만, 프레임워크는 프레임워크가 개발자 코드를 호출하여 실행 흐름을 제어합니다(IoC)."
+      },
+      {
+        cat: "BE",
+        question: "스프링의 IoC(제어의 역전)를 달성하는 두 가지 방식인 DL과 DI에 대한 설명으로 옳은 것은?",
+        options: [
+          "DL은 컨테이너 API를 호출해 빈을 직접 검색(Lookup)하는 것이고, DI는 설정 정보를 바탕으로 컨테이너가 의존성을 자동 주입해주는 것이다.",
+          "DL을 사용하면 컨테이너 종속성이 완전히 사라진다.",
+          "DI는 오직 XML 설정 파일에서만 지원된다.",
+          "스프링에서는 DL 방식을 DI보다 훨씬 권장한다."
+        ],
+        answer: 0,
+        explanation: "DL(Dependency Lookup)은 컨테이너 API에 종속되는 반면, DI(Dependency Injection)는 컨테이너가 의존 객체를 주입해주므로 결합도가 크게 낮아집니다."
+      },
+      {
+        cat: "BE",
+        question: "XML 기반 스프링 빈 설정에서 다른 빈 객체의 참조(id)를 주입할 때 사용하는 속성은?",
+        options: ["ref 속성", "value 속성", "name 속성", "class 속성"],
+        answer: 0,
+        explanation: "단순 문자열/기본형 값을 주입할 때는 value 속성을, 다른 스프링 빈의 id를 참조 주입할 때는 ref 속성을 사용합니다."
+      },
+      {
+        cat: "BE",
+        question: "스프링 DI에서 @Autowired와 @Resource의 차이점으로 옳은 것은?",
+        options: [
+          "@Autowired는 주로 타입(Type)을 기준으로, @Resource는 주로 빈 이름(Name)을 기준으로 의존성을 주입한다.",
+          "@Autowired는 이름 기준이고, @Resource는 타입 기준이다.",
+          "두 어노테이션은 문법과 검색 기준이 완전히 동일하다.",
+          "@Resource는 생성자에만 붙일 수 있다."
+        ],
+        answer: 0,
+        explanation: "@Autowired는 스프링 전용으로 타입 기반 주입을 수행하고, JSR-250 표준인 @Resource는 빈 이름 기반으로 주입을 수행합니다."
+      },
+      {
+        cat: "BE",
+        question: "스프링의 @Component와 @Bean 어노테이션의 차이점으로 가장 적절한 것은?",
+        options: [
+          "@Component는 개발자가 직접 작성한 클래스 위에 선언하고, @Bean은 외부 라이브러리 객체 등을 등록할 때 @Configuration 클래스의 메서드 위에 선언한다.",
+          "@Component는 메서드에만, @Bean은 클래스에만 선언한다.",
+          "@Bean이 선언된 클래스만 컴포넌트 스캔의 대상이 된다.",
+          "@Component로 등록된 객체는 싱글톤이 될 수 없다."
+        ],
+        answer: 0,
+        explanation: "@Component는 클래스 레벨에서 컴포넌트 스캔으로 자동 등록되며, @Bean은 개발자가 제어할 수 없는 외부 라이브러리 등을 설정 클래스(@Configuration) 내 메서드로 수동 등록할 때 사용합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring AOP에서 부가기능인 Advice를 핵심 로직의 실행 전, 실행 후, 예외 발생 시점 등 전 과정에 걸쳐 유연하게 제어할 수 있는 가장 강력한 어드바이스는?",
+        options: ["Around 어드바이스", "Before 어드바이스", "AfterReturning 어드바이스", "AfterThrowing 어드바이스"],
+        answer: 0,
+        explanation: "Around 어드바이스는 ProceedingJoinPoint.proceed()를 호출하여 타겟 메서드 실행 전후와 예외 흐름을 완전히 제어할 수 있습니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Boot 3의 자동 구성(Auto Configuration) 메타정보가 위치하는 기본 파일 경로는?",
+        options: [
+          "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports",
+          "WEB-INF/web.xml",
+          "META-INF/persistence.xml",
+          "src/main/resources/beans.xml"
+        ],
+        answer: 0,
+        explanation: "Spring Boot 3.x부터는 기존 spring.factories 대신 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports 파일에 자동 구성 클래스 목록을 명시합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Boot에서 환경별 프로파일(Profile)을 운영 환경인 'prod'로 활성화하는 실행 커맨드라인 아규먼트로 옳은 것은?",
+        options: [
+          "--spring.profiles.active=prod",
+          "--spring.profile=prod",
+          "--active.profile=prod",
+          "--server.mode=prod"
+        ],
+        answer: 0,
+        explanation: "스프링 부트는 커맨드라인 인수나 프로퍼티 파일에서 'spring.profiles.active' 설정을 통해 활성화할 프로파일을 지정합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Boot에서 애플리케이션 시작 시 특정 초기화 코드(데이터 삽입 등)를 실행하기 위해 구현하는 인터페이스는?",
+        options: [
+          "CommandLineRunner (또는 ApplicationRunner)",
+          "InitializingBeanProcessor",
+          "WebMvcConfigurer",
+          "Filter"
+        ],
+        answer: 0,
+        explanation: "CommandLineRunner 또는 ApplicationRunner 인터페이스의 run() 메서드를 구현하면 애플리케이션 컨텍스트 기동 완료 직후 코드가 자동 실행됩니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA 엔티티의 생명주기 4가지 상태에 해당하지 않는 것은?",
+        options: [
+          "Committed (영구 커밋 상태)",
+          "New / Transient (비영속)",
+          "Managed (영속)",
+          "Detached (준영속)"
+        ],
+        answer: 0,
+        explanation: "JPA 엔티티의 생명주기는 비영속(New), 영속(Managed), 준영속(Detached), 삭제(Removed)의 4단계로 정의됩니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA 영속성 컨텍스트(Persistence Context)가 엔티티를 관리할 때 제공하는 핵심 기능이 아닌 것은?",
+        options: [
+          "1차 캐시 및 동일성(identity) 보장",
+          "트랜잭션을 지원하는 쓰기 지연 (Transactional write-behind)",
+          "변경 감지 (Dirty Checking)",
+          "외부 REST API 호출 결과의 영구 캐싱"
+        ],
+        answer: 3,
+        explanation: "영속성 컨텍스트는 데이터베이스 엔티티의 1차 캐시, 동일성 보장, 쓰기 지연, 변경 감지(Dirty Checking), 지연 로딩을 관리하며 REST API 캐싱과는 무관합니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA에서 EntityManager의 persist() 호출 시 즉시 SQL이 DB로 나가지 않고 트랜잭션 커밋 시점에 모아서 전송되는 메커니즘은?",
+        options: [
+          "쓰기 지연 (Transactional write-behind)",
+          "변경 감지 (Dirty Checking)",
+          "지연 로딩 (Lazy Loading)",
+          "프로젝션 (Projection)"
+        ],
+        answer: 0,
+        explanation: "엔티티 매니저는 트랜잭션 커밋 직전까지 INSERT SQL을 '쓰기 지연 SQL 저장소'에 쌓아두었다가 커밋 시점에 한꺼번에 DB로 flush합니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA의 변경 감지(Dirty Checking)가 동작하는 원리로 가장 정확한 것은?",
+        options: [
+          "트랜잭션 커밋 시점에 1차 캐시의 엔티티 최종 상태를 최초 로딩 스냅샷과 비교하여 변경 사항에 대한 UPDATE 쿼리를 자동 생성한다.",
+          "엔티티의 setter 메서드가 호출되는 즉시 DB로 UPDATE SQL을 전송한다.",
+          "개발자가 반드시 repository.save()를 호출해야만 UPDATE가 발생한다.",
+          "비영속 및 준영속 상태의 엔티티에서도 항상 동작한다."
+        ],
+        answer: 0,
+        explanation: "영속 상태의 엔티티는 flush 호출 시 1차 캐시의 엔티티와 최초 스냅샷을 비교하여 바뀐 값이 있을 때만 UPDATE 쿼리를 쓰기 지연 저장소에 등록합니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA의 flush() 메서드에 대한 설명으로 옳지 않은 것은?",
+        options: [
+          "영속성 컨텍스트의 변경 내용을 데이터베이스에 반영하여 동기화한다.",
+          "flush()가 호출되면 영속성 컨텍스트의 1차 캐시 내용이 완전히 비워진다.",
+          "트랜잭션 커밋 시점이나 JPQL 쿼리 실행 직전에 자동으로 flush가 호출된다.",
+          "쓰기 지연 저장소에 쌓여 있던 등록, 수정, 삭제 쿼리가 DB로 전송된다."
+        ],
+        answer: 1,
+        explanation: "flush는 쓰기 지연 저장소의 SQL을 DB에 보내 동기화할 뿐, 1차 캐시의 엔티티를 비우지 않습니다. 영속성 컨텍스트를 비우는 메서드는 clear()입니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Boot에서 MySQL/MariaDB 방언(Dialect)을 설정하고 DDL 자동 실행 옵션으로 기존 스키마를 유지하면서 변경분만 추가하는 옵션은?",
+        options: [
+          "spring.jpa.hibernate.ddl-auto=update",
+          "spring.jpa.hibernate.ddl-auto=create",
+          "spring.jpa.hibernate.ddl-auto=validate",
+          "spring.jpa.hibernate.ddl-auto=create-drop"
+        ],
+        answer: 0,
+        explanation: "update 옵션은 기존 테이블과 데이터를 보존하면서 엔티티에 새롭게 추가된 컬럼이나 매핑 변경분만 테이블에 반영합니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA 1:1 단방향/양방향 연관관계 매핑 시 외래 키(FK)의 위치와 연관관계의 주인에 대한 설명으로 옳은 것은?",
+        options: [
+          "실제 테이블에 외래 키(FK) 컬럼을 소유한 쪽 엔티티가 연관관계의 주인이 되며 @JoinColumn을 선언한다.",
+          "외래 키가 없는 반대편 엔티티가 주인이 되며 mappedBy를 선언한다.",
+          "양방향 매핑 시 주인이 아닌 쪽에만 연관관계를 설정해도 DB에 외래 키가 정상 저장된다.",
+          "1:1 관계에서는 외래 키가 항상 두 테이블 모두에 각각 생성된다."
+        ],
+        answer: 0,
+        explanation: "물리적 DB 테이블에서 외래 키를 가지는 테이블에 매핑된 엔티티가 연관관계의 주인이며, 주인 쪽에 @JoinColumn을 지정하고 반대편에 mappedBy를 지정합니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA 1:1 양방향 관계에서 주인이 아닌 쪽(mappedBy를 선언한 엔티티, 예: Student.studentDetail)에 fetch = FetchType.LAZY를 설정했을 때 일어나는 현상은?",
+        options: [
+          "외래 키가 상대 테이블에 있으므로 대상의 존재 유무를 확인하기 위해 지연 로딩이 무시되고 즉시 조회 쿼리가 실행된다.",
+          "정상적으로 바이트코드 프록시 객체가 생성되어 실제 접근 전까지 조회가 지연된다.",
+          "컴파일 에러가 발생하여 프로젝트가 빌드되지 않는다.",
+          "NullPointerException이 발생하여 조회가 완전히 차단된다."
+        ],
+        answer: 0,
+        explanation: "외래 키가 없는 mappedBy 엔티티는 DB 조회 없이 null인지 프록시인지 판단할 수 없으므로, 기본적으로 LAZY 설정이 동작하지 않고 즉시 쿼리가 나갑니다."
+      },
+      {
+        cat: "BE",
+        question: "Student 엔티티와 StudentDetail 엔티티를 양방향 연관관계로 저장할 때 자바 코드에서 양쪽 모두 참조를 설정해야 하는 주된 이유는?",
+        options: [
+          "주인 쪽에만 설정하면 DB에는 FK가 저장되지만 직후 자바 메모리 객체 상태(student.getStudentDetail())가 null이 되어 불일치가 발생하기 때문이다.",
+          "JPA는 자바 메모리 객체를 DB보다 우선시하여 항상 롤백시키기 때문이다.",
+          "양쪽 모두 설정하지 않으면 컴파일 오류가 발생하기 때문이다.",
+          "주인이 아닌 쪽에만 설정해도 DB에 외래 키가 정상 반영되기 때문이다."
+        ],
+        answer: 0,
+        explanation: "주인 쪽에 설정해야 DB 외래 키가 들어가고, 순수 객체 관점에서도 양방향 객체 그래프 탐색이 정상 작동하도록 양쪽 모두 값을 주입해야 합니다."
+      },
+      {
+        cat: "BE",
+        question: "영속 상태의 부모 엔티티에 빈 자식 엔티티를 연결한 후 중간에 existsByEmail() 같은 조회 쿼리를 호출할 때 발생하는 500 오류의 원인은?",
+        options: [
+          "JPA의 FlushMode가 AUTO이므로 조회 쿼리 실행 직전에 flush가 트리거되어 값이 채워지지 않은 자식 엔티티가 INSERT되면서 NOT NULL 제약조건을 위반하기 때문이다.",
+          "existsByEmail() 메서드는 트랜잭션 내부에서 절대 호출할 수 없기 때문이다.",
+          "JPA는 조회 쿼리 실행 시 항상 롤백을 수행하기 때문이다.",
+          "CascadeType.ALL이 걸려 있으면 조회가 불가능하기 때문이다."
+        ],
+        answer: 0,
+        explanation: "JPA는 조회 쿼리 실행 전 영속성 컨텍스트를 자동 flush하므로, 미완성 엔티티를 미리 연결해 두면 NOT NULL 제약 위반으로 예외가 터집니다."
+      },
+      {
+        cat: "BE",
+        question: "JPA에서 Fetch Join을 사용할 때 INNER JOIN FETCH 대신 'LEFT JOIN FETCH'를 사용해야 하는 상황은?",
+        options: [
+          "상세정보(StudentDetail)가 등록되지 않아 연관 데이터가 null인 학생도 목록 조회 결과에 누락 없이 포함해야 할 때",
+          "모든 학생이 100% 상세정보를 가지고 있을 때",
+          "오직 일대다(1:N) 관계에서만 사용할 수 있을 때",
+          "DB에서 페이징 처리를 완전히 비활성화하고자 할 때"
+        ],
+        answer: 0,
+        explanation: "일반 JOIN FETCH는 내부 조인이므로 연관 상세정보가 없는 행은 결과에서 누락됩니다. 연관 데이터가 없는 부모도 조회하려면 LEFT JOIN FETCH를 써야 합니다."
+      },
+      {
+        cat: "BE",
+        question: "1:N 컬렉션 연관관계(Department -> Student)에서 Fetch Join과 Pageable(페이징)을 함께 적용했을 때 발생하는 문제점은?",
+        options: [
+          "조인 결과로 행 수가 뻥튀기되므로 DB 레벨의 limit이 적용되지 못하고 전체 데이터를 읽어 메모리에서 페이징을 수행(HHH90003004 경고)한다.",
+          "SQL 문법 에러로 인해 데이터베이스 서버가 다운된다.",
+          "항상 빈 리스트(Empty List)만 반환된다.",
+          "첫 페이지만 반환되고 이후 페이지 접근이 불가능하다."
+        ],
+        answer: 0,
+        explanation: "1:N 컬렉션 Fetch Join 시 일(1) 쪽 데이터가 N개로 증폭되어 DB 단위 페이징이 불가능하므로 Hibernate는 메모리 페이징을 시도하며 OOM 위험이 생깁니다."
+      },
+      {
+        cat: "BE",
+        question: "학과 목록을 조회할 때 소속 학생 수만 필요할 경우, N+1 쿼리 및 불필요한 엔티티 로딩을 방지하기 위한 가장 우수한 설계는?",
+        options: [
+          "LEFT JOIN과 GROUP BY, COUNT(s)를 조합한 인터페이스 기반 프로젝션(DepartmentSummary)을 사용한다.",
+          "findAll()로 모든 학과와 학생 엔티티를 로딩한 뒤 department.getStudents().size()를 호출한다.",
+          "학생 엔티티의 FetchType을 EAGER로 변경한다.",
+          "학과 테이블에 학생 수를 수동 텍스트 컬럼으로 중복 저장한다."
+        ],
+        answer: 0,
+        explanation: "필요한 집계 데이터만 프로젝션(Projection) 인터페이스로 조회하면 단 1번의 가벼운 SQL로 엔티티 로딩 없이 개수를 조회할 수 있습니다."
+      },
+      {
+        cat: "BE",
+        question: "양방향 연관관계를 가진 Entity(Student ↔ Department)를 DTO 변환 없이 컨트롤러 응답 본문으로 직접 직렬화할 때 발생하는 대표적 문제는?",
+        options: [
+          "상호 참조로 인한 무한 순환 참조(Infinite Recursion)와 StackOverflowError",
+          "데이터베이스 커넥션 풀의 고갈",
+          "JSON 문법 파싱 오류(400 Bad Request)",
+          "트랜잭션 강제 롤백"
+        ],
+        answer: 0,
+        explanation: "양방향 연관관계 엔티티를 직렬화하면 서로를 무한히 호출하다가 결국 StackOverflowError가 발생하므로 반드시 DTO로 변환해야 합니다."
+      },
+      {
+        cat: "BE",
+        question: "Bean Validation 검증 애노테이션 중 null, 빈 문자열(''), 공백 문자(' ')를 모두 거부하는 것은?",
+        options: ["@NotBlank", "@NotEmpty", "@NotNull", "@Size"],
+        answer: 0,
+        explanation: "@NotNull은 null만 거부하고, @NotEmpty는 공백을 허용하지만, @NotBlank는 trim() 후 문자열 길이가 0인 경우까지 완벽히 거부합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Boot에서 DTO 내부에 포함된 중첩 DTO(예: StudentDTO.Request 안의 detailRequest)의 유효성 검사를 함께 수행하기 위해 해당 필드에 반드시 선언해야 하는 것은?",
+        options: ["@Valid", "@Nested", "@Autowired", "@Component"],
+        answer: 0,
+        explanation: "중첩 객체의 필드 제약조건을 연쇄적으로 검사하려면 해당 내부 DTO 필드 위에 반드시 @Valid를 선언해야 합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Data JPA 페이징에서 전체 데이터 건수(totalElements)를 구하는 count 쿼리를 실행하지 않고, 단순히 다음 페이지의 존재 여부(size + 1 건 조회)만 확인하여 성능이 뛰어난 반환 타입은?",
+        options: ["Slice<T>", "Page<T>", "List<T>", "Iterable<T>"],
+        answer: 0,
+        explanation: "Slice는 count 쿼리를 날리지 않고 요청한 size보다 1개 더 조회하여 다음 페이지가 있는지 여부만 빠르게 판단하므로 무한 스크롤 등에 유리합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring MVC 컨트롤러 메서드 파라미터로 Pageable을 선언할 때, 요청 파라미터가 없을 경우 적용할 기본 크기 및 정렬 기준을 정의하는 어노테이션은?",
+        options: ["@PageableDefault", "@RequestParam", "@PageConfig", "@SortDefault"],
+        answer: 0,
+        explanation: "@PageableDefault(size = 10, sort = \"id\") 형태로 파라미터 생략 시의 기본 페이징 설정을 간편하게 지정합니다."
+      },
+      {
+        cat: "BE",
+        question: "브라우저가 보안을 위해 실제 본 요청(PUT, DELETE, JSON POST 등)을 서버로 전송하기 전에 예비로 보내는 OPTIONS 요청을 무엇이라 하는가?",
+        options: ["Preflight (사전 요청)", "Handshake", "Redirect", "Polling"],
+        answer: 0,
+        explanation: "브라우저는 Cross-Origin 환경에서 부작용이 있는 요청을 보내기 전 OPTIONS 메서드로 Preflight 요청을 날려 서버의 허용 여부를 사전 검증합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Boot에서 CORS 허용 응답 시 'Access-Control-Max-Age'를 설정하는 주된 목적은?",
+        options: [
+          "Preflight(OPTIONS) 요청의 승인 결과를 브라우저에 일정 시간 캐싱하여 반복적인 예비 요청 왕복을 줄이기 위해",
+          "사용자의 세션 유지 시간을 1시간으로 연장하기 위해",
+          "데이터베이스 쿼리 캐시 유효기간을 지정하기 위해",
+          "서버의 쓰레드 타임아웃을 연장하기 위해"
+        ],
+        answer: 0,
+        explanation: "Max-Age를 지정하면 브라우저가 승인 결과를 캐싱하므로 설정된 시간 동안 중복 OPTIONS 요청 없이 실제 요청만 즉시 전송합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Security에서 JWT와 같은 토큰 기반 무상태 인증을 구축할 때 설정해야 하는 세션 생성 정책은?",
+        options: [
+          "SessionCreationPolicy.STATELESS",
+          "SessionCreationPolicy.ALWAYS",
+          "SessionCreationPolicy.IF_REQUIRED",
+          "SessionCreationPolicy.NEVER"
+        ],
+        answer: 0,
+        explanation: "JWT 인증 시 서버는 세션을 생성하지도 않고 기존 세션을 사용하지도 않아야 하므로 SessionCreationPolicy.STATELESS를 지정합니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Security의 메서드 수준 인가(Security) 기능인 @PreAuthorize(\"hasAuthority('ROLE_ADMIN')\")를 활성화하기 위해 설정 클래스에 부여해야 하는 어노테이션은?",
+        options: ["@EnableMethodSecurity", "@EnableWebMvc", "@EnableGlobalAdmin", "@EnableAuthorization"],
+        answer: 0,
+        explanation: "Spring Security 6.x(Boot 3.x)부터는 @EnableMethodSecurity 어노테이션을 통해 @PreAuthorize, @PostAuthorize 등을 활성화합니다."
+      },
+      {
+        cat: "BE",
+        question: "컨트롤러 메서드 파라미터에서 현재 SecurityContext에 인증된 사용자 객체를 직접 주입받을 수 있도록 스프링 시큐리티가 제공하는 어노테이션은?",
+        options: ["@AuthenticationPrincipal", "@CurrentUserSession", "@PrincipalParam", "@SessionAttribute"],
+        answer: 0,
+        explanation: "@AuthenticationPrincipal을 사용하면 Authentication 객체 내부의 Principal(사용자 상세 객체)을 파라미터로 바로 바인딩할 수 있습니다."
+      },
+      {
+        cat: "BE",
+        question: "Spring Security FilterChain에서 커스텀 JWT 인증 필터(JwtAuthenticationFilter)를 삽입하는 가장 적절한 위치는?",
+        options: [
+          "UsernamePasswordAuthenticationFilter 이전 (addFilterBefore)",
+          "SecurityContextHolderFilter 이전",
+          "모든 필터가 끝난 최하단 (addFilterAfter)",
+          "DispatcherServlet 내부"
+        ],
+        answer: 0,
+        explanation: "요청 헤더의 JWT를 검사해 인증 객체를 먼저 세팅해야 하므로 기본 폼 로그인 처리 필터인 UsernamePasswordAuthenticationFilter 앞단에 배치합니다."
+      },
+      {
+        cat: "BE",
+        question: "RESTful API 개발 시 특정 ID의 학생 삭제(DELETE) 요청이 성공했을 때 반환하기 가장 적절한 HTTP 응답 코드는?",
+        options: ["204 No Content", "201 Created", "400 Bad Request", "409 Conflict"],
+        answer: 0,
+        explanation: "삭제 요청이 성공하고 클라이언트에 반환할 본문(Body) 데이터가 없는 경우 204 No Content가 가장 표준적인 응답입니다."
+      },
+
+      // =========================================================================
+      // FRONTEND (40문항) - HTML, CSS, Modern JS ES6+, React Core, Axios/Router/Zustand
+      // =========================================================================
+      {
+        cat: "FE",
+        question: "HTML5 문서의 <head> 안에 <meta charset='UTF-8'> 설정을 빠뜨렸을 때 브라우저에서 나타나는 대표적인 이상 증상은?",
+        options: [
+          "한글 텍스트가 깨져서 ??? 등으로 표시된다.",
+          "CSS 파일 연결이 완전히 거부된다.",
+          "자바스크립트 실행 시 문법 에러가 발생한다.",
+          "화면이 모바일 크기로 축소된다."
+        ],
+        answer: 0,
+        explanation: "문자 인코딩이 UTF-8로 선언되지 않으면 브라우저가 기본 인코딩으로 해석하여 한글 텍스트가 깨지게 됩니다."
+      },
+      {
+        cat: "FE",
+        question: "HTML에서 폼(form) 안의 취소 버튼을 만들 때 <button type='button'> 으로 type을 반드시 명시해야 하는 이유는?",
+        options: [
+          "type을 생략하면 기본값이 'submit'으로 동작하여 취소를 눌렀는데 폼이 제출되기 때문이다.",
+          "type을 안 쓰면 버튼이 화면에 보이지 않기 때문이다.",
+          "type='button'이 없으면 CSS 스타일이 적용되지 않기 때문이다.",
+          "자바스크립트 addEventListener 등록이 차단되기 때문이다."
+        ],
+        answer: 0,
+        explanation: "form 내부 button의 기본 type은 submit이므로, 순수 클릭용 버튼은 반드시 type='button'을 선언해야 페이지 새로고침과 제출을 방지합니다."
+      },
+      {
+        cat: "FE",
+        question: "HTML 입력창에서 id와 name 속성의 역할 차이로 가장 옳은 것은?",
+        options: [
+          "id는 문서 내 요소 특정(CSS/JS 선택자, label의 for)에 쓰이고, name은 서버로 전송되는 데이터의 키(FormData 키)로 쓰인다.",
+          "name은 CSS 선택자로만 쓰고, id는 FormData 수집용으로만 쓴다.",
+          "id만 작성하고 name을 생략해도 FormData.get()으로 값을 읽을 수 있다.",
+          "둘은 완전히 같은 속성이다."
+        ],
+        answer: 0,
+        explanation: "id는 DOM 식별 및 label 매핑용이며, FormData 객체 및 서버 전송 시 파라미터 키 값은 name 속성을 기준으로 수집됩니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS에서 너비 200px 요소에 padding: 20px과 border: 5px solid를 주었을 때, 상자의 전체 너비가 200px로 유지되도록 만드는 필수 속성은?",
+        options: [
+          "box-sizing: border-box;",
+          "box-sizing: content-box;",
+          "display: inline-block;",
+          "overflow: hidden;"
+        ],
+        answer: 0,
+        explanation: "border-box를 적용하면 지정한 width 안에 padding과 border 두께가 포함되어 상자 크기가 늘어나지 않고 내용 영역이 줄어듭니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS display: inline 속성을 가진 요소(span, a 등)의 특징으로 옳은 것은?",
+        options: [
+          "글자처럼 취급되어 줄바꿈이 일어나지 않으며 width, height, 상하 margin이 적용되지 않는다.",
+          "가로 한 줄을 통째로 차지하며 앞뒤로 자동 줄바꿈이 일어난다.",
+          "상하좌우 margin과 padding이 모두 완벽하게 다른 요소를 밀어낸다.",
+          "자식 요소들의 가로 배치를 자동으로 제어한다."
+        ],
+        answer: 0,
+        explanation: "인라인 요소는 글자 흐름을 따르므로 인위적인 크기(width/height)와 상하 여백(margin)이 브라우저에서 무시됩니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS display: none 과 visibility: hidden 의 차이점으로 옳은 것은?",
+        options: [
+          "display: none은 자리까지 차지하지 않고 완전히 사라지지만, visibility: hidden은 자리는 그대로 빈 공간으로 유지된다.",
+          "visibility: hidden은 자리도 남기지 않고 완전히 삭제된다.",
+          "display: none은 텍스트만 숨기고 배경은 유지한다.",
+          "두 속성은 화면 렌더링상 완전히 동일하다."
+        ],
+        answer: 0,
+        explanation: "display: none은 레이아웃 트리에서 제거되어 빈 공간을 남기지 않으며, visibility: hidden은 렌더링만 숨기고 원래 크기를 그대로 차지합니다."
+      },
+      {
+        cat: "FE",
+        question: "Flexbox(display: flex)를 적용할 때 반드시 지켜야 하는 원칙은?",
+        options: [
+          "display: flex 선언은 자식을 줄 세우는 명령이므로 반드시 부모(컨테이너) 요소에 선언해야 한다.",
+          "자식(아이템) 요소 각각에 display: flex를 선언해야 가로로 배치된다.",
+          "justify-content는 항상 세로 정렬만 담당한다.",
+          "flex-direction의 기본값은 column이다."
+        ],
+        answer: 0,
+        explanation: "Flexbox와 Grid는 자식들을 배치하는 부모의 규칙이므로 반드시 부모 컨테이너에 선언해야 합니다."
+      },
+      {
+        cat: "FE",
+        question: "Flexbox에서 'flex-direction: column;' 으로 설정했을 때 정렬 속성의 변화로 옳은 것은?",
+        options: [
+          "주축이 세로로 바뀌어 justify-content가 세로 정렬, align-items가 가로 정렬을 담당하게 된다.",
+          "justify-content가 여전히 가로 정렬을 담당한다.",
+          "align-items 속성이 완전히 비활성화된다.",
+          "아이템들이 무조건 가로로 나란히 나열된다."
+        ],
+        answer: 0,
+        explanation: "flex-direction을 column으로 바꾸면 주축(main axis)이 세로가 되므로 주축 정렬인 justify-content가 세로 방향을 제어합니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS에서 자식 요소를 가로·세로 완전 정중앙에 배치하기 위한 가장 전형적인 Flexbox 3줄 조합은?",
+        options: [
+          "display: flex; justify-content: center; align-items: center;",
+          "display: flex; justify-content: space-between; align-items: stretch;",
+          "display: block; margin: 0 auto; text-align: center;",
+          "position: relative; top: 50%; left: 50%;"
+        ],
+        answer: 0,
+        explanation: "display: flex와 함께 주축 중앙(justify-content: center), 교차축 중앙(align-items: center)을 주면 완벽한 중앙 정렬이 됩니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS Grid에서 미디어 쿼리 없이 화면 크기에 따라 열 개수를 자동 조절하는 반응형 속성은?",
+        options: [
+          "grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));",
+          "grid-template-columns: repeat(3, 1fr);",
+          "grid-template-columns: 200px 1fr 100px;",
+          "grid-template-columns: 100%;"
+        ],
+        answer: 0,
+        explanation: "auto-fit과 minmax(250px, 1fr) 조합은 250px 밑으로 줄어들면 열 수를 줄여 미디어 쿼리 없이 반응형 격자를 만듭니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS position: absolute를 적용한 자식 요소를 특정 부모 박스 기준으로 배치하기 위해 해당 부모에게 선언해야 하는 속성은?",
+        options: ["position: relative", "position: static", "overflow: visible", "display: flex"],
+        answer: 0,
+        explanation: "absolute는 position이 static이 아닌 가장 가까운 조상을 기준으로 삼으므로, 부모에 position: relative를 주어 기준점을 잡습니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS 모서리를 border-radius: 15px로 둥글게 깎은 카드 부모 요소 안에서 직각 이미지가 모서리 밖으로 튀어나오는 것을 잘라내기 위한 속성은?",
+        options: ["overflow: hidden;", "overflow: scroll;", "box-sizing: border-box;", "opacity: 0.9;"],
+        answer: 0,
+        explanation: "부모 요소에 overflow: hidden을 선언하면 부모의 둥근 모서리 경계를 벗어나는 자식 요소의 직각 모서리를 깔끔하게 잘라냅니다."
+      },
+      {
+        cat: "FE",
+        question: "CSS 가상 클래스 선택자 작성 시 마우스 호버 효과가 정상 동작하는 올바른 문법은?",
+        options: [
+          ".card:hover (공백 없이 붙여 씀)",
+          ".card :hover (가운데 공백을 둠)",
+          ".card::hover",
+          ".card->hover"
+        ],
+        answer: 0,
+        explanation: ".card:hover는 카드 자신을 가리키지만, .card :hover처럼 띄어 쓰면 자손 선택자가 되어 카드 내부의 요소를 가리키게 됩니다."
+      },
+      {
+        cat: "FE",
+        question: "JavaScript에서 변수 선언 시 const를 기본으로 사용하고, 값이 변경될 때만 let으로 바꾸는 주된 이유는?",
+        options: [
+          "코드에서 '이 값은 재할당되지 않는다'는 의도를 명확히 드러내어 추적 범위를 좁히고 버그를 줄이기 위해",
+          "const로 선언해야만 객체 내부의 속성을 변경할 수 있기 때문에",
+          "let은 브라우저에서 실행 속도가 매우 느리기 때문에",
+          "var와 완전히 동일하지만 글자 수가 짧기 때문에"
+        ],
+        answer: 0,
+        explanation: "재할당이 불필요한 값을 const로 고정하면 불변성이 드러나 코드 가독성이 올라가고 사이드 이펙트를 방지할 수 있습니다."
+      },
+      {
+        cat: "FE",
+        question: "JavaScript의 일시적 사각지대(TDZ, Temporal Dead Zone)에 대한 설명으로 옳은 것은?",
+        options: [
+          "let과 const 변수는 선언문 이전에 접근하려고 하면 ReferenceError를 발생시켜 실수를 일찍 방지한다.",
+          "var 변수는 TDZ의 영향을 받아 선언 전에 접근할 수 없다.",
+          "함수 선언문(function)은 TDZ 때문에 호이스팅되지 않는다.",
+          "TDZ 구간에 있는 변수는 항상 undefined 값을 가진다."
+        ],
+        answer: 0,
+        explanation: "let과 const는 호이스팅되지만 초기화 단계 전까지 TDZ에 머무르므로, 선언 전에 접근하면 ReferenceError가 발생합니다."
+      },
+      {
+        cat: "FE",
+        question: "JavaScript의 Falsy(거짓 같은 값) 6가지에 해당하지 않는 것은?",
+        options: ["[] (빈 배열)", "0", "'' (빈 문자열)", "null"],
+        answer: 0,
+        explanation: "false, 0, '' (빈 문자열), null, undefined, NaN은 Falsy이며, 빈 배열 []과 빈 객체 {}는 Truthy(참)입니다."
+      },
+      {
+        cat: "FE",
+        question: "다음 코드 실행 결과 출력되는 값은?\nconst user = { age: 0 };\nconsole.log(user.age || 20, user.age ?? 20);",
+        options: ["20 0", "0 0", "20 20", "0 20"],
+        answer: 0,
+        explanation: "||는 0을 Falsy로 보아 20으로 밀어내지만, ??(널 병합)는 0을 유효한 값으로 인정하여 0을 유지합니다."
+      },
+      {
+        cat: "FE",
+        question: "중첩 객체 접근 시 'student.detail?.address ?? \"-\"' 문법에 대한 설명으로 옳은 것은?",
+        options: [
+          "student.detail이 없으면 에러 대신 undefined를 돌려주고, 그 값이 없으므로 '-'를 반환한다.",
+          "detail이 없으면 무조건 TypeError 예외가 발생한다.",
+          "address가 빈 문자열('')이어도 '-'로 바꾼다.",
+          "반드시 try-catch 블록 내부에서만 사용할 수 있다."
+        ],
+        answer: 0,
+        explanation: "옵셔널 체이닝(?.)은 중간 객체가 없을 때 에러 대신 undefined를 내고, 널 병합(??)은 undefined를 '-' 기본값으로 치환합니다."
+      },
+      {
+        cat: "FE",
+        question: "JavaScript 화살표 함수(Arrow Function)의 this 바인딩 특성으로 옳은 것은?",
+        options: [
+          "자체 this를 갖지 않고 선언된 위치의 상위 렉시컬(Lexical) 스코프 this를 그대로 사용한다.",
+          "호출 시점에 함수를 호출한 객체로 this가 동적 바인딩된다.",
+          "new 키워드를 사용하여 생성자 함수로 객체를 생성할 수 있다.",
+          "객체의 메서드로 정의했을 때 this가 해당 객체를 정확히 가리킨다."
+        ],
+        answer: 0,
+        explanation: "화살표 함수는 고유 this를 생성하지 않으므로 바깥 상위 스코프의 this를 유지하여 콜백 함수 작성 시 안전합니다."
+      },
+      {
+        cat: "FE",
+        question: "객체 구조 분해 할당(Destructuring) 코드 'const { name, ...rest } = { name: 'Kim', age: 20, email: 'a@b.com' };' 에서 rest 객체의 값은?",
+        options: [
+          "{ age: 20, email: 'a@b.com' }",
+          "{ name: 'Kim' }",
+          "['age', 'email']",
+          "undefined"
+        ],
+        answer: 0,
+        explanation: "Rest 연산자(...rest)는 구조 분해되고 남은 나머지 속성들을 새로운 객체로 묶어줍니다."
+      },
+      {
+        cat: "FE",
+        question: "다음 코드 실행 결과 출력되는 값은?\nconst arr1 = [1, 2];\nconst arr2 = [0, ...arr1, 3];\nconsole.log(arr2);",
+        options: ["[0, 1, 2, 3]", "[[1, 2], 0, 3]", "[0, [1, 2], 3]", "에러 발생"],
+        answer: 0,
+        explanation: "전개 구문(...arr1)은 배열 요소를 낱개로 펼쳐 넣으므로 [0, 1, 2, 3] 배열이 만들어집니다."
+      },
+      {
+        cat: "FE",
+        question: "JavaScript 배열 메서드 중 각 요소를 하나씩 순회하며 부수 효과를 수행할 뿐, 반환값(return)은 항상 undefined인 메서드는?",
+        options: ["forEach()", "map()", "filter()", "reduce()"],
+        answer: 0,
+        explanation: "forEach()는 요소를 순회하는 목적으로만 사용되며 새로운 배열을 반환하지 않고 항상 undefined를 반환합니다."
+      },
+      {
+        cat: "FE",
+        question: "사용자가 입력한 HTML 태그가 화면에서 스크립트로 실행되는 XSS 공격을 막기 위해 DOM 텍스트 출력 시 innerHTML 대신 권장되는 속성은?",
+        options: ["textContent", "innerHTML", "outerHTML", "value"],
+        answer: 0,
+        explanation: "textContent는 입력값을 HTML 태그가 아닌 순수 텍스트 문자열로 안전하게 삽입하므로 XSS 보안 위협을 방지합니다."
+      },
+      {
+        cat: "FE",
+        question: "form 제출(submit) 시 페이지가 새로고침되는 브라우저 기본 동작을 차단하기 위해 호출해야 하는 코드는?",
+        options: ["event.preventDefault();", "event.stopPropagation();", "event.stop();", "return true;"],
+        answer: 0,
+        explanation: "event.preventDefault()는 submit에 의한 페이지 새로고침이나 a 태그의 기본 링크 이동을 취소합니다."
+      },
+      {
+        cat: "FE",
+        question: "표(Table)의 여러 행에 각각 이벤트를 걸지 않고, 부모인 tbody 한 곳에 클릭 이벤트를 등록하여 자식의 클릭을 처리하는 패턴은?",
+        options: ["이벤트 위임 (Event Delegation)", "이벤트 캡처링", "이벤트 버블링 차단", "이벤트 디바운싱"],
+        answer: 0,
+        explanation: "이벤트 위임은 부모 요소에 리스너를 한 번만 등록하고 event.target과 closest()로 자식의 액션을 분기 처리하는 기법입니다."
+      },
+      {
+        cat: "FE",
+        question: "fetch API 호출 시 서버가 404나 500 에러를 반환했을 때 fetch의 동작 특성으로 옳은 것은?",
+        options: [
+          "서버와 통신이 정상적으로 닿았으므로 catch로 가지 않고 response.ok = false 상태로 then을 실행한다.",
+          "즉시 거부(reject)되어 catch 블록으로 바로 점프한다.",
+          "브라우저가 자동으로 요청을 3회 재시도한다.",
+          "JSON 파싱 에러를 강제로 발생시킨다."
+        ],
+        answer: 0,
+        explanation: "fetch()는 네트워크 자체가 끊기지 않는 한 4xx, 5xx 응답도 fulfilled Promise로 보므로 if(!response.ok) 예외 처리를 직접 작성해야 합니다."
+      },
+      {
+        cat: "FE",
+        question: "서버가 204 No Content(본문 없음)를 응답했을 때 'response.json()'을 호출하면 발생하는 에러는?",
+        options: [
+          "Unexpected end of JSON input",
+          "body stream already read",
+          "Failed to fetch",
+          "ReferenceError"
+        ],
+        answer: 0,
+        explanation: "204 응답은 바디가 비어 있으므로 JSON 파싱을 시도하면 본문이 비어 있어 파싱 에러(Unexpected end of JSON input)가 발생합니다."
+      },
+      {
+        cat: "FE",
+        question: "<script type='module'> 을 사용했을 때의 특징으로 옳지 않은 것은?",
+        options: [
+          "모듈 파일 내 최상위 변수와 함수가 전역 window 객체에 등록되어 HTML 인라인 onclick에서 바로 호출할 수 있다.",
+          "import와 export 문법을 자유롭게 사용할 수 있다.",
+          "HTML 파싱을 방해하지 않고 문서 로딩 완료 후 지연 실행(defer)된다.",
+          "자동으로 엄격 모드('use strict')로 실행된다."
+        ],
+        answer: 0,
+        explanation: "모듈 스크립트는 자체 모듈 스코프를 가지므로 최상위 함수가 window에 노출되지 않으며, 따라서 HTML의 onclick=\"fn()\"으로 부를 수 없습니다."
+      },
+      {
+        cat: "FE",
+        question: "Vite 프로젝트에서 .env 파일의 환경 변수를 소스 코드에서 읽어오기 위한 객체 접근 방식은?",
+        options: [
+          "import.meta.env.VITE_변수명",
+          "process.env.REACT_APP_변수명",
+          "window.ENV.변수명",
+          "document.env.변수명"
+        ],
+        answer: 0,
+        explanation: "Vite는 'VITE_' 접두사가 붙은 환경 변수를 import.meta.env 객체를 통해 안전하게 노출합니다."
+      },
+      {
+        cat: "FE",
+        question: "React의 가상 DOM(Virtual DOM)과 재조정(Reconciliation) 과정에 대한 설명으로 옳은 것은?",
+        options: [
+          "상태 변경 시 가상 DOM 객체를 새로 만들어 이전 것과 비교(Diffing)한 뒤, 실제 변경된 부분만 실제 DOM에 반영한다.",
+          "상태가 바뀌면 브라우저의 실제 DOM 전체를 즉시 다시 생성한다.",
+          "가상 DOM을 조작하는 비용이 실제 브라우저 DOM보다 훨씬 느리다.",
+          "CSS 스타일을 자바스크립트로 강제 변환하는 도구이다."
+        ],
+        answer: 0,
+        explanation: "가상 DOM은 메모리상에서 가볍게 계산하고 실제 변경분만 브라우저 DOM에 패치(커밋)하여 렌더링 성능을 극대화합니다."
+      },
+      {
+        cat: "FE",
+        question: "React 컴포넌트 작성 규칙에 대한 설명으로 옳지 않은 것은?",
+        options: [
+          "컴포넌트 함수 이름은 반드시 소문자로 시작해야 한다.",
+          "컴포넌트가 반환하는 JSX 최상위 태그는 반드시 하나(또는 <></>)여야 한다.",
+          "class 속성 대신 className, for 대신 htmlFor를 사용한다.",
+          "같은 입력(props)에 대해서는 항상 같은 화면을 반환하는 순수 함수여야 한다."
+        ],
+        answer: 0,
+        explanation: "React 컴포넌트 이름은 HTML 기본 태그와 구분하기 위해 반드시 대문자로 시작(PascalCase)해야 합니다."
+      },
+      {
+        cat: "FE",
+        question: "React에서 State를 선언할 때 '단일 진실의 원천(Single Source of Truth)' 원칙에 따라 State로 두지 말고 계산해야 하는 것은?",
+        options: [
+          "editingId !== null 로부터 판별할 수 있는 isEditing(수정 모드 여부)",
+          "서버에서 불러온 학생 목록 데이터 (students)",
+          "사용자가 입력 중인 폼 데이터 (form)",
+          "어느 학생을 수정 중인지 기억하는 번호 (editingId)"
+        ],
+        answer: 0,
+        explanation: "editingId가 있으면 수정 모드이므로, isEditing을 별도 state로 두면 두 상태가 어긋날 위험이 생겨 계산된 변수로 두는 것이 안전합니다."
+      },
+      {
+        cat: "FE",
+        question: "React에서 JSX 이벤트 핸들러에 함수를 등록할 때 올바른 문법은?",
+        options: [
+          "<button onClick={() => onDelete(id)}>삭제</button>",
+          "<button onClick={onDelete(id)}>삭제</button>",
+          "<button onclick='onDelete(id)'>삭제</button>",
+          "<button onClick='() => onDelete(id)'>삭제</button>"
+        ],
+        answer: 0,
+        explanation: "onClick={onDelete(id)}처럼 괄호를 붙여 호출해버리면 렌더링 중에 즉시 실행되어 무한 리렌더링 에러가 발생하므로 인라인 화살표 함수로 감싸서 넘겨야 합니다."
+      },
+      {
+        cat: "FE",
+        question: "React에서 State와 useRef의 핵심적인 차이점으로 옳은 것은?",
+        options: [
+          "State는 값이 바뀌면 화면을 리렌더링하지만, ref는 .current 값이 바뀌어도 화면을 다시 그리지 않는다.",
+          "ref 값이 바뀌면 무조건 컴포넌트 전체가 다시 렌더링된다.",
+          "State는 DOM 노드에 직접 접근하기 위한 전용 도구이다.",
+          "useRef는 함수 컴포넌트에서 상태를 관리할 수 없다."
+        ],
+        answer: 0,
+        explanation: "State는 화면에 보이는 상태를 갱신할 때 쓰고, useRef는 화면 렌더링과 무관하게 유지해야 하는 값이나 DOM 참조에 사용합니다."
+      },
+      {
+        cat: "FE",
+        question: "React에서 배열을 렌더링할 때 key prop으로 배열의 인덱스(index)를 사용하면 안 되는 주된 이유는?",
+        options: [
+          "배열의 중간 항목이 추가되거나 삭제될 때 key가 밀려 상태가 엉뚱한 행에 남거나 리렌더링 오류가 발생할 수 있기 때문이다.",
+          "key로 인덱스를 주면 무조건 문법 에러가 발생하여 빌드가 멈추기 때문이다.",
+          "배열 인덱스는 숫자 타입이 아니기 때문이다.",
+          "React는 인덱스 key를 만나면 무조건 페이지를 새로고침하기 때문이다."
+        ],
+        answer: 0,
+        explanation: "항목의 삭제/추가/정렬 시 인덱스가 재할당되어 React가 엉뚱한 컴포넌트 인스턴스와 매핑하므로 DB의 고유 ID를 써야 합니다."
+      },
+      {
+        cat: "FE",
+        question: "React 컴포넌트 본문에서 useEffect 없이 직접 서버 fetch()를 호출하면 발생하는 심각한 문제는?",
+        options: [
+          "컴포넌트 렌더링 시마다 fetch가 실행되고, 응답 후 setState가 불려 다시 렌더링되는 무한 루프에 빠진다.",
+          "브라우저에서 네트워크 요청이 자동으로 차단된다.",
+          "서버의 데이터베이스가 즉시 삭제된다.",
+          "최초 1회만 실행되고 다시는 실행되지 않는다."
+        ],
+        answer: 0,
+        explanation: "렌더링 본문에서 비동기 fetch 후 state를 갱신하면 컴포넌트가 다시 실행되고 또 fetch가 호출되는 무한 요청 고리에 빠집니다."
+      },
+      {
+        cat: "FE",
+        question: "fetch API 대비 Axios 라이브러리를 사용할 때 얻는 편의성이 아닌 것은?",
+        options: [
+          "백엔드 서버에 CORS 설정을 하지 않아도 프론트엔드에서 CORS 에러가 100% 자동 해결된다.",
+          "4xx, 5xx 에러 응답 시 자동으로 Promise를 reject하여 수동 검사를 줄여준다.",
+          "응답 본문을 response.data로 자동 JSON 파싱해준다.",
+          "요청/응답 인터셉터(Interceptors)를 통해 토큰 첨부나 에러 처리를 공통화할 수 있다."
+        ],
+        answer: 0,
+        explanation: "CORS는 브라우저 보안 규약이므로 Axios를 쓰더라도 백엔드 서버의 허용 설정이 반드시 필요합니다."
+      },
+      {
+        cat: "FE",
+        question: "React Router를 적용한 SPA 앱을 배포한 후 /edit/3 같은 하위 경로에서 새로고침 시 404 에러가 발생하는 원인과 해결책은?",
+        options: [
+          "서버에 실제 /edit/3 물리 파일이 없기 때문이며, 서버가 모든 요청에 대해 index.html을 응답하도록 히스토리 폴백(History Fallback)을 설정한다.",
+          "React Router 라이브러리의 치명적 결함이므로 라이브러리를 삭제해야 한다.",
+          "모든 페이지를 html 파일로 물리 복사해 서버에 배포해야 한다.",
+          "클라이언트 브라우저의 캐시를 모두 삭제해야만 해결된다."
+        ],
+        answer: 0,
+        explanation: "SPA는 단일 index.html만 존재하므로, 서버(Spring/Nginx 등)에서 어떤 경로 요청이 오든 index.html로 포워딩해주어야 클라이언트 라우터가 주소를 인식합니다."
+      },
+      {
+        cat: "FE",
+        question: "React Router에서 현재 활성화된 URL 경로 파라미터(예: /edit/:id) 값을 추출하는 훅은?",
+        options: ["useParams", "useNavigate", "useLocation", "useSearchParams"],
+        answer: 0,
+        explanation: "useParams() 훅은 URL의 동적 세그먼트(:id 등)를 객체 형태로 추출하여 컴포넌트에서 활용할 수 있게 합니다."
+      },
+      {
+        cat: "FE",
+        question: "전역 상태 관리 라이브러리인 Zustand가 Redux 대비 갖는 장점으로 가장 적절한 것은?",
+        options: [
+          "<Provider>로 컴포넌트 트리를 감싸지 않아도 되며, create 함수 하나로 스토어를 간결하게 생성할 수 있다.",
+          "비동기 처리를 위해 반드시 Redux-Saga 같은 복잡한 미들웨어를 설치해야 한다.",
+          "상태 변경을 위해 반드시 액션 생성자와 리듀서 파일을 따로 만들어야 한다.",
+          "클래스 컴포넌트에서만 사용 가능하다."
+        ],
+        answer: 0,
+        explanation: "Zustand는 보일러플레이트 없이 create 하나로 스토어를 만들고, Provider 래핑 없이 훅처럼 직관적으로 구독할 수 있어 매우 간결합니다."
+      }
+    ];
+
+    let currentFilter = 'ALL';
+    let currentFilteredList = [];
+    let solvedCount = 0;
+    let correctCount = 0;
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      initQuiz();
+    }
+
+    function initQuiz() {
+      solvedCount = 0;
+      correctCount = 0;
+
+      let filtered = rawQuestions;
+      if (currentFilter === 'BE') filtered = rawQuestions.filter(q => q.cat === 'BE');
+      if (currentFilter === 'FE') filtered = rawQuestions.filter(q => q.cat === 'FE');
+
+      document.getElementById('total-count').innerText = filtered.length;
+      updateStats();
+
+      // 1. 문제 순서 무작위 셔플
+      const shuffledQ = shuffle(filtered);
+
+      // 2. 각 문제의 보기 순서 및 정답 인덱스 무작위 셔플
+      currentFilteredList = shuffledQ.map(q => {
+        const optionsWithMeta = q.options.map((optText, idx) => ({
+          text: optText,
+          isCorrect: idx === q.answer
+        }));
+        const shuffledOptions = shuffle(optionsWithMeta);
+        return {
+          ...q,
+          shuffledOptions: shuffledOptions,
+          shuffledAnswerIndex: shuffledOptions.findIndex(o => o.isCorrect)
+        };
+      });
+
+      renderQuiz();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById("quiz-list");
+      container.innerHTML = "";
+
+      const labelPrefix = ["①", "②", "③", "④"];
+
+      currentFilteredList.forEach((q, qIndex) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = `q-card-${qIndex}`;
+
+        const header = document.createElement("div");
+        header.className = "card-header";
+        const tagClass = q.cat === 'BE' ? 'tag-be' : 'tag-fe';
+        const tagText = q.cat === 'BE' ? '백엔드' : '프론트엔드';
+        header.innerHTML = `<span class="tag ${tagClass}">${tagText}</span> <strong>Q${qIndex + 1}.</strong> ${escapeHtml(q.question)}`;
+        card.appendChild(header);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "options";
+
+        q.shuffledOptions.forEach((opt, optIndex) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.innerHTML = `<strong>${labelPrefix[optIndex]}</strong> <span>${escapeHtml(opt.text)}</span>`;
+          btn.onclick = () => handleSelect(qIndex, optIndex);
+          optionsDiv.appendChild(btn);
+        });
+
+        card.appendChild(optionsDiv);
+
+        const expDiv = document.createElement("div");
+        expDiv.className = "explanation";
+        expDiv.id = `exp-${qIndex}`;
+        expDiv.innerHTML = `<strong>[정답 해설]</strong> ${escapeHtml(q.explanation)}`;
+        card.appendChild(expDiv);
+
+        container.appendChild(card);
+      });
+    }
+
+    function handleSelect(qIndex, selectedOptIndex) {
+      const q = currentFilteredList[qIndex];
+      const card = document.getElementById(`q-card-${qIndex}`);
+      const buttons = card.querySelectorAll(".option-btn");
+      const expDiv = document.getElementById(`exp-${qIndex}`);
+
+      buttons.forEach(btn => btn.disabled = true);
+
+      const isCorrect = selectedOptIndex === q.shuffledAnswerIndex;
+
+      if (isCorrect) {
+        buttons[selectedOptIndex].classList.add("correct");
+        correctCount++;
+      } else {
+        buttons[selectedOptIndex].classList.add("incorrect");
+        buttons[q.shuffledAnswerIndex].classList.add("correct");
+      }
+
+      expDiv.style.display = "block";
+      solvedCount++;
+      updateStats();
+    }
+
+    function updateStats() {
+      document.getElementById("solved-count").innerText = solvedCount;
+      document.getElementById("correct-count").innerText = correctCount;
+      const acc = solvedCount > 0 ? Math.round((correctCount / solvedCount) * 100) : 0;
+      document.getElementById("accuracy").innerText = `${acc}%`;
+    }
+
+    function escapeHtml(string) {
+      if (!string) return '';
+      return String(string)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/\n/g, '<br>');
+    }
+
+    initQuiz();
+  </script>
+</body>
+</html>
