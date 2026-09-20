@@ -13,15 +13,15 @@ function formatPrice(price) {
 // 표의 열 개수. colSpan 에 쓴다.
 const COLUMN_COUNT = 7;
 
-function BookTable({ books, loading, error, onEdit, onDelete, onDetail }) {
+function BookTable({ books, loading, listError, onEdit, onDelete, onDetail }) {
 
     let rows;
 
-    if (error) {
+    if (listError) {
         // (1) 목록을 못 불러왔다
         rows = (
             <tr>
-                <td colSpan={COLUMN_COUNT} className="error-row">{error}</td>
+                <td colSpan={COLUMN_COUNT} className="error-row">{listError}</td>
             </tr>
         );
     } else if (books.length === 0 && !loading) {
@@ -52,7 +52,7 @@ function BookTable({ books, loading, error, onEdit, onDelete, onDetail }) {
                         onClick 에는 함수를 "넘겨야" 한다. onEdit(book.id) 라고
                         쓰면 그리는 순간 바로 실행되므로 () => 로 감싼다. */}
                     <button type="button" className="edit-btn"
-                            onClick={() => onEdit(book.id)}>수정</button>
+                            onClick={() => onEdit(book)}>수정</button>
                     <button type="button" className="delete-btn"
                             onClick={() => onDelete(book.id)}>삭제</button>
                     <button type="button" className="detail-btn"

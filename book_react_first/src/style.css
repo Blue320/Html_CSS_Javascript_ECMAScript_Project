@@ -23,7 +23,7 @@ form {
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 label {
@@ -61,7 +61,7 @@ table {
     background-color: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 th, td {
@@ -163,4 +163,64 @@ textarea {
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+/* ---- ECMAScript 버전에서 추가된 스타일 ---- */
+
+/* 목록이 비었을 때 보여 주는 안내 행 */
+.empty-row {
+    text-align: center;
+    /* 가운데 정렬 */
+    color: #888;
+    /* 옅은 회색 글자 */
+    padding: 24px 10px;
+    /* 위아래로 넉넉한 여백 */
+}
+
+/* 목록을 불러오지 못했을 때 보여 주는 행 */
+.error-row {
+    text-align: center;
+    /* 가운데 정렬 */
+    color: #dc3545;
+    /* 빨간색 글자 */
+    padding: 24px 10px;
+    /* 위아래로 넉넉한 여백 */
+}
+
+/* 수정 모드일 때 폼 전체를 살짝 강조한다 */
+.form-container.editing {
+    border-left: 4px solid #28a745;
+    /* 왼쪽에 녹색 띠 */
+}
+
+/* 제목 옆에 붙는 모드 표시(TEST / PROD) */
+.app-mode {
+    font-size: 0.5em;
+    /* 제목보다 훨씬 작게 — em 은 부모 글자 크기의 배수다 */
+    vertical-align: middle;
+    /* 제목 글자의 가운데 높이에 맞춘다 */
+    padding: 3px 10px;
+    border-radius: 12px;
+    color: white;
+    letter-spacing: 1px;
+}
+
+/* 개발 모드 — 눈에 띄지 않는 회색 */
+.app-mode.test {
+    background-color: #6c757d;
+}
+
+/* 운영 모드 — 실수로 운영을 건드리지 않도록 빨간색 */
+.app-mode.prod {
+    background-color: #dc3545;
+}
+
+.message-box.success {
+    color: #28a745;
+    /* 초록색 */
+}
+
+.message-box.error {
+    color: #dc3545;
+    /* 빨간색 */
 }
